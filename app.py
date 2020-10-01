@@ -1,7 +1,5 @@
 from flask import Flask, request, session
 import os
-import jwt
-import http.client
 import datetime
 import json
 import re
