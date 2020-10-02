@@ -119,6 +119,8 @@ def meeting():
     
     reply = " You have entered an invalid reply \n"+ initial_response()
     msg.body(reply)
+    session.pop('next_reply', None)
+    session.pop('request', None)
     return str(resp)
 
 
