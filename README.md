@@ -5,3 +5,7 @@ A Twilio &amp; Flask Application to Manage Zoom meetings
 <p>To run this application, clone the repo:</p>
 <code><p> git clone https://github.com/ToluClassics/Zoom-Meeting-Manager</p>
 </code>
+<ul>
+  <li><a href="https://www.twilio.com/try-twilio">Create a Twilio account and Setup Whatsapp Sandbox Environment</a></li>
+  <li><a href="https://zoom.us/signup">Create a Zoom Developer Account</a></li>
+</ul>
