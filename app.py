@@ -40,7 +40,6 @@ def meeting():
     
     #Create Meeting
     if (in_msg=='2' or 'two' in in_msg):
-        session['next_reply'] = True
         session['request'] = 'Create'
         reply = ("To Schedule a Zoom Meeting, Provide the following information\n"
                 "Provide Meeting Start Time 🕐 by following the format below:\n"
@@ -87,7 +86,6 @@ def meeting():
 
     #Delete Meeting
     if (in_msg=='3' or 'three' in in_msg):
-        session['next_reply'] = True
         session['request'] = 'Delete'
         reply = "Kindly Provide the Meeting ID of the Meeting to be Deleted"
         msg.body(reply)
@@ -119,7 +117,6 @@ def meeting():
     
     reply = " You have entered an invalid reply \n"+ initial_response()
     msg.body(reply)
-    session.pop('next_reply', None)
     session.pop('request', None)
     return str(resp)
 
