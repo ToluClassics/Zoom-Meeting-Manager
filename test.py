@@ -8,7 +8,7 @@ EMAIL_ADDRESS = os.environ.get('USER_EMAIL')
 
 client = ZoomClient(API_KEY,API_SECRET)
 
-response = client.user.get(id="ogundepoodunayo@gmail.com")
+response = client.user.get(id=EMAIL_ADDRESS)
 
 if response.status_code == 200:
     Print("The API Credentials are valid")
