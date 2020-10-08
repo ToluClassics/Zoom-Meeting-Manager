@@ -1,5 +1,3 @@
-import datetime
-import json
 import os
 from zoomus import ZoomClient
 
