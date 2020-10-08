@@ -1,7 +1,5 @@
 from flask import Flask, request, session
 import os
-import jwt
-import http.client
 import datetime
 import json
 import re
@@ -16,12 +14,12 @@ app.secret_key = os.environ.get("FLASK_SECRET")
 API_KEY = os.environ.get('API_KEY')
 API_SECRET = os.environ.get('API_SECRET')
 EMAIL_ADDRESS = os.environ.get('USER_EMAIL')
-TIMEZONE = os.environ.get('TIMEZONE') 
 
 #regex pattern for validating the time
 regex_start_time = '[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}'
-
+#Create Zoom Client
 client = ZoomClient(API_KEY,API_SECRET)
+
 
 #define a route for the application that supports POST requests
 @app.route('/meeting', methods=['POST'])
@@ -42,8 +40,8 @@ def meeting():
     if (in_msg=='2' or 'two' in in_msg):
         session['request'] = 'Create'
         reply = ("To Schedule a Zoom Meeting, Provide the following information\n"
-                "Provide Meeting Start Time 🕐 by following the format below:\n"
-                "yyyy-MM-dd-HH-mm-ss Example: 2020-09-21-12-00-00")
+        "Provide Meeting Start Time 🕐 by following the format below:\n"
+        "yyyy-MM-dd-HH-mm-ss Example: 2020-09-21-12-00-00")
         msg.body(reply)
         return str(resp)
     elif 'request' in session and session['request']=='Create':
@@ -60,10 +58,8 @@ def meeting():
             return str(resp)
         elif 'duration' not in session:
             session['duration'] = in_msg
-            session.pop('next_reply', None)
             session.pop('request', None)
-            
-            api_resp, meeting_info = create_meeting(session['topic'],session['start_time'], session['duration'], EMAIL_ADDRESS, session['topic'],TIMEZONE)
+            api_resp, meeting_info = create_meeting(session['topic'],session['start_time'], session['duration'], EMAIL_ADDRESS, session['topic'])
             session.pop('topic', None)
             session.pop('start_time', None)
             session.pop('duration', None)
@@ -94,7 +90,6 @@ def meeting():
         get_resp = get_meeting(client,in_msg,EMAIL_ADDRESS)
         if get_resp.status_code == 200:
             response_code = delete_meeting(client,in_msg,EMAIL_ADDRESS)
-            session.pop('next_reply', None)
             session.pop('request', None)  
             if response_code.status_code == 204:
                 reply = "The meeting with id " + in_msg +" has been deleted"
@@ -135,8 +130,8 @@ def list_meetings(client,user_id):
                         +"\n   Meeting ID:  "+str(dict['id'])
                         +"\n   Meeting Start Time:  "+str(dict['start_time']).replace("T"," ").replace("Z"," ")
                         +"\n   Meeting Timezone: "+str(dict['timezone'])
-                    + "\n   Meeting Duration: "+str(dict['duration'])
-                    + "\n   Meeting URL: " + dict['join_url']  
+                        + "\n   Meeting Duration: "+str(dict['duration'])
+                        + "\n   Meeting URL: " + dict['join_url']  
                         +"\n\n")
             meeting = meeting + meet_info
     return meeting
@@ -146,15 +141,18 @@ def delete_meeting(client,meeting_id,host_id):
     delete_meet = client.meeting.delete(id=meeting_id,host_id=host_id)
     return delete_meet
 
-def create_meeting(topic,start_time, duration, user_id, timezone, agenda):
+def create_meeting(topic,start_time, duration, user_id, agenda):
     time_array = start_time.split('-')
     time_array = [int(i) for i in time_array] 
+
+    timezone = json.loads(client.user.get(id=EMAIL_ADDRESS).text)['timezone']
+
     time_dt = datetime.datetime(time_array[0],time_array[1],time_array[2],
                 time_array[3],time_array[4],time_array[5])
     
     zoom_meeting=client.meeting.create(topic=topic, type=2, start_time=time_dt, 
                                         duration=duration,user_id=user_id, 
-                                        agenda=topic,timezone=TIMEZONE,host_id=user_id)
+                                        agenda=topic,timezone=timezone,host_id=user_id)
     
     data_dict = json.loads(zoom_meeting.text)
 
@@ -165,7 +163,7 @@ def get_meeting(client,meeting_id,host_id):
     return meet_info
 
 
-#define a function to generate the a response to the user when they send a wrong message
+#define a function to generate a response to user to kickstart the conversation
 def initial_response():
     message =("Hello!, I am your Zoom Meeting Manager\n\n"
             "Kindly select One of the options below:\n"
@@ -173,6 +171,7 @@ def initial_response():
              "*2.)* Create a Meeting\n"
              "*3.)* Delete a Meeting\n")
     return message
+
 
 
 if __name__ == "__main__":
